@@ -10,7 +10,7 @@ Este código pretende encontrar la probabilidad de pago de 100 cliente de Refina
 #                                 Fecha: 10/09/2022
 #
 #############################################################################
-# Primero, cargo la base de datos -------------------------------------------
+### Primero, cargo la base de datos -------------------------------------------
 rm(list=ls()) #Limpio el lugar de trabajo
 
 require(pacman) #Si es falso, debo instalar el paquete
@@ -32,11 +32,11 @@ for (base in bases) {
   historico <- bind_rows(historico, temp)
 }
 
-# Evalúo missing values:
+### Evalúo missing values:
 na_percentage <-sapply(historico, function(y) sum(length(which(is.na(y))))/length(historico$Cosecha))#creo una función para saber cuantos NAs hay por columna 
-# Al parecer no hay missing values
-# Estadísticas Descriptivas:
-# Esto para mi documento en latex:
+#### Al parecer no hay missing values
+#### Estadísticas Descriptivas:
+#### Esto para mi documento en latex:
 stargazer(historico, type='latex')
 # Esto para ver resultados en la interfaz de r studio
 stargazer(historico, type='text')

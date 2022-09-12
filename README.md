@@ -15,10 +15,10 @@ rm(list=ls()) #Limpio el lugar de trabajo
 
 require(pacman) #Si es falso, debo instalar el paquete
 install.packages('pacman') #Instalo la libreria pacman
-#Cargo mis paquetes
+### Cargo mis paquetes
 p_load(broom, dplyr, stargazer, lessR, rio, stringi, tidyr, tidyverse, caret, modelsummary, gamlr, lubridate, class, gmodel, ISLR)
 
-#Primer debo crear una carpeta que contenga un archivo con los datos
+### Primer debo crear una carpeta que contenga un archivo con los datos
 setwd(choose.dir()) #Selecciono la carpeta creada para establecer el path (dirección) de los documentos
 
 df <- read.table('Clientes_a_Calificar.csv', header = T, sep = ',', stringsAsFactors = F)

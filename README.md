@@ -38,16 +38,16 @@ na_percentage <-sapply(historico, function(y) sum(length(which(is.na(y))))/lengt
 #### Estadísticas Descriptivas:
 #### Esto para mi documento en latex:
 stargazer(historico, type='latex')
-# Esto para ver resultados en la interfaz de r studio
+#### Esto para ver resultados en la interfaz de r studio
 stargazer(historico, type='text')
-# Veo diferencias interesantes entre variables a traves del tiempo
+#### Veo diferencias interesantes entre variables a traves del tiempo
 for (base in bases) {
   print(base)
   temp <- read.table(base, header = T, sep = ',', stringsAsFactors = F)
   stargazer(temp, type='text')
 }
 
-# Agrego nuevas variables, limpio la base y ajusto los datos de entrenamiento-------------------------------------------
+#### Agrego nuevas variables, limpio la base y ajusto los datos de entrenamiento-------------------------------------------
 url_divipola <- import("https://geoportal.dane.gov.co/descargas/divipola/DIVIPOLA_Municipios.xlsx", encoding = "UTF-8", check.names = FALSE)
 names(url_divipola)[names(url_divipola) == "Codificación de la División Político Administrativa de Colombia - DIVIPOLA. Agosto 2022"] <- "codepto"
 names(url_divipola)[names(url_divipola) == "...2"] <- "depto"
@@ -84,11 +84,11 @@ dta_full$longitud <- ifelse(dta_full$municipio == 'EXTERIOR EN ANDORRA', -77.093
 dta_full$latitud <- ifelse(dta_full$municipio == 'EXTERIOR EN COSTA RICA', 38.934338, dta_full$latitud)
 dta_full$longitud <- ifelse(dta_full$municipio == 'EXTERIOR EN COSTA RICA', -77.093885, dta_full$longitud)
 
-# AJUSTO EL MODELO-------------------------------------------
+#### AJUSTO EL MODELO-------------------------------------------
 
 na_percentage <-sapply(dta_full, function(y) sum(length(which(is.na(y))))/length(dta_full$Cosecha))#creo una función para saber cuantos NAs hay por columna 
 data_x <- as.data.frame(na_percentage)
-# En un primer proceso de eliminación de variables, eliminamos aquellas con un 
+#### En un primer proceso de eliminación de variables, eliminamos aquellas con un 
 #alto porcentaje de missing values
 var <- cbind(Var_name = rownames(data_x), data_x)
 rownames(var) <- 1:nrow(var)
@@ -98,7 +98,7 @@ count(var) # Contamos cuantas variables tenemos en total
 count(var_for_keep) # Contamos cuantas variables tienen % missing menor o igual a 45% 
 count(var_for_drop) # Contamos cuantas variables tienen % missing mayor a 45% 
 
-# Ninguna variable tiene un alto porcentaje de missing values
+#### Ninguna variable tiene un alto porcentaje de missing values
 gc()
 memory.size() ### Checking your memory size
 memory.limit() ## Checking the set limit
@@ -115,7 +115,7 @@ train <- dta_full[particion,]
 test <- dta_full[-particion,]
 #Usando el paquete caret Separamos la base en entrenamiento (60%) y prueba (40%)
 
-# Estimación LOGIT:
+#### Estimación LOGIT:
 model <- as.formula("Pago~DiasMora+SaldoCapital+PagosRealizadoUltMes+PagosRealizadoUlt2Meses+PagosRealizadoUlt3Meses+PagosRealizadoUlt4Meses+PagosRealizadoUlt5Meses+PagosRealizadoUlt6Meses+LocalizacionUlt6Meses+AcuerdosUlt6Meses+AcuerdosUlt3Meses+SaldoxCliente+PagosTotales+factor(TipoProducto)+latitud+longitud")
 model <- as.formula("Pago~DiasMora+latitud+longitud+factor(TipoProducto)+LocalizacionUlt6Meses+AcuerdosUlt6Meses+SaldoxCliente+PagosTotales")
 logit <- glm(model, family=binomial(link="logit"), data=train)
@@ -123,23 +123,23 @@ tidy(logit)
 
 dta_full$Pago_log <- predict(logit, newdata=dta_full, type="response")
 
-# Defino la regla del 70%
+#### Defino la regla del 70%
 rule=0.7
 dta_full$log_07 <- ifelse(dta_full$Pago_log>rule,1,0)
-# Variables:
+#### Variables:
 
-# PagosRealizadoUltMes
-# PagosRealizadoUlt2Meses
-# PagosRealizadoUlt3Meses
-# PagosRealizadoUlt4Meses
-# PagosRealizadoUlt5Meses
-# LocalizacionUlt6Meses
-# PagosRealizadoUlt6Meses
-# AcuerdosUlt6Meses
-# AcuerdosUlt3Meses
-# SaldoxCliente
+##### PagosRealizadoUltMes
+##### PagosRealizadoUlt2Meses
+##### PagosRealizadoUlt3Meses
+##### PagosRealizadoUlt4Meses
+##### PagosRealizadoUlt5Meses
+##### LocalizacionUlt6Meses
+##### PagosRealizadoUlt6Meses
+##### AcuerdosUlt6Meses
+##### AcuerdosUlt3Meses
+##### SaldoxCliente
 
-#predecimos en la base de prueba
+##### predecimos en la base de prueba
 pred_m1 <- predict(modelo_1, test)
 MAE_m1 <- MAE(test$ingtot, pred_m1)
 MAPE_m1 <- MAPE(test$ingtot, pred_m1)

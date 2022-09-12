@@ -3,11 +3,11 @@ Este código pretende encontrar la probabilidad de pago de 100 cliente de Refina
 
 #############################################################################
 #
-#                      Caso - Ciencias Cuantitativas - Refinancia                   
+##                    Caso - Ciencias Cuantitativas - Refinancia                   
 #
-#                       Nicolás González Llano Cédula: 1020843404
+##                     Nicolás González Llano Cédula: 1020843404
 #
-#                                 Fecha: 10/09/2022
+##                                 Fecha: 10/09/2022
 #
 #############################################################################
 ### Primero, cargo la base de datos -------------------------------------------

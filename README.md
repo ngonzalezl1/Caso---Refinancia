@@ -24,8 +24,11 @@ setwd(choose.dir()) #Selecciono la carpeta creada para establecer el path (direc
 df <- read.table('Clientes_a_Calificar.csv', header = T, sep = ',', stringsAsFactors = F)
 
 setwd(choose.dir()) # Seleccionar la carperta llamada "historicos"
+
 bases <- paste0('Refinancia_20220', 2:6, '.csv') # Creo vector con el nombre de mis archivos
+
 historico <- data.frame() # Este será el nombre de mi base de datos "TRAIN"
+
 for (base in bases) {
   print(base)
   temp <- read.table(base, header = T, sep = ',', stringsAsFactors = F)
@@ -49,76 +52,126 @@ for (base in bases) {
 
 #### Agrego nuevas variables, limpio la base y ajusto los datos de entrenamiento-------------------------------------------
 url_divipola <- import("https://geoportal.dane.gov.co/descargas/divipola/DIVIPOLA_Municipios.xlsx", encoding = "UTF-8", check.names = FALSE)
+
 names(url_divipola)[names(url_divipola) == "Codificación de la División Político Administrativa de Colombia - DIVIPOLA. Agosto 2022"] <- "codepto"
+
 names(url_divipola)[names(url_divipola) == "...2"] <- "depto"
+
 names(url_divipola)[names(url_divipola) == "...3"] <- "codmuni"
+
 names(url_divipola)[names(url_divipola) == "...4"] <- "municipio"
+
 names(url_divipola)[names(url_divipola) == "...5"] <- "for_drop"
+
 names(url_divipola)[names(url_divipola) == "...6"] <- "latitud"
+
 names(url_divipola)[names(url_divipola) == "...7"] <- "longitud"
+
 url_divipola = url_divipola[-1:-5,]
+
 url_divipola$for_drop <- NULL
+
 url_divipola$depto <- NULL
+
 url_divipola$codepto <- NULL
+
 url_divipola$codmuni <- NULL
+
 url_divipola$municipio <- toupper(stri_trans_general(url_divipola$municipio,"Latin-ASCII"))
+
 names(historico)[names(historico) == "Ciudad"] <- "municipio"
+
 historico$municipio <- toupper(stri_trans_general(historico$municipio,"Latin-ASCII"))
+
 url_divipola$municipio[url_divipola$municipio == 'SAN JOSE DE CUCUTA'] <- 'CUCUTA'
+
 url_divipola$municipio[url_divipola$municipio == 'CARTAGENA DE INDIAS'] <- 'CARTAGENA'
+
 url_divipola$municipio[url_divipola$municipio == 'GUADALAJARA DE BUGA'] <- 'BUGA'
+
 url_divipola$municipio[url_divipola$municipio == 'DOS QUEBRADAS'] <- 'DOSQUEBRADAS'
+
 url_divipola$municipio[url_divipola$municipio == 'VILLA DE SAN DIEGO DE UBATE'] <- 'UBATE'
+
 url_divipola$municipio[url_divipola$municipio == 'SAN SEBASTIAN DE MARIQUITA'] <- 'MARIQUITA'
+
 historico$municipio[historico$municipio == 'ITSMINA'] <- 'ISTMINA'
+
 url_divipola$municipio <- gsub('.', '', url_divipola$municipio, fixed = T)
+
 url_divipola$municipio <- gsub(',', '', url_divipola$municipio, fixed = T)
+
 url_divipola <- url_divipola %>% drop_na()
+
 dta_full <- full_join(url_divipola, historico, by="municipio")
+
 dta_full$latitud <- ifelse(dta_full$municipio == '[FUERA DE COLOMBIA]', 38.934338, dta_full$latitud)
+
 dta_full$longitud <- ifelse(dta_full$municipio == '[FUERA DE COLOMBIA]', -77.093885, dta_full$longitud)
+
 dta_full$latitud <- ifelse(dta_full$municipio == 'EXTERIOR EN ESTADOS UNIDOS DE AMERICA', 38.934338, dta_full$latitud)
+
 dta_full$longitud <- ifelse(dta_full$municipio == 'EXTERIOR EN ESTADOS UNIDOS DE AMERICA', -77.093885, dta_full$longitud)
+
 dta_full$latitud <- ifelse(dta_full$municipio == 'EXTERIOR EN ANDORRA', 38.934338, dta_full$latitud)
+
 dta_full$longitud <- ifelse(dta_full$municipio == 'EXTERIOR EN ANDORRA', -77.093885, dta_full$longitud)
+
 dta_full$latitud <- ifelse(dta_full$municipio == 'EXTERIOR EN COSTA RICA', 38.934338, dta_full$latitud)
+
 dta_full$longitud <- ifelse(dta_full$municipio == 'EXTERIOR EN COSTA RICA', -77.093885, dta_full$longitud)
 
 #### AJUSTO EL MODELO-------------------------------------------
-
-na_percentage <-sapply(dta_full, function(y) sum(length(which(is.na(y))))/length(dta_full$Cosecha))#creo una función para saber cuantos NAs hay por columna 
+#### creo una función para saber cuantos NAs hay por columna
+na_percentage <-sapply(dta_full, function(y) sum(length(which(is.na(y))))/length(dta_full$Cosecha)) 
 data_x <- as.data.frame(na_percentage)
 #### En un primer proceso de eliminación de variables, eliminamos aquellas con un 
-#alto porcentaje de missing values
+#### alto porcentaje de missing values
 var <- cbind(Var_name = rownames(data_x), data_x)
+
 rownames(var) <- 1:nrow(var)
+
 var_for_drop <- var[var$na_percentage>=0.45,]
+
 var_for_keep <- var[var$na_percentage<0.45,]
+
 count(var) # Contamos cuantas variables tenemos en total 
+
 count(var_for_keep) # Contamos cuantas variables tienen % missing menor o igual a 45% 
+
 count(var_for_drop) # Contamos cuantas variables tienen % missing mayor a 45% 
 
 #### Ninguna variable tiene un alto porcentaje de missing values
 gc()
+
 memory.size() ### Checking your memory size
+
 memory.limit() ## Checking the set limit
+
 memory.limit(size=10000000)
 
 
 dt_1 <- dta_full %>% subset(Cosecha==202202)
+#### establecemos una semilla para asegurar la reproducibilidad de los resultados
+set.seed(4444) 
 
-set.seed(4444) #establecemos una semilla para asegurar la reproducibilidad de los resultados
 particion <- createDataPartition(y = dta_full$Pago,
                                  p = 0.6,
                                  list = F)
+                                 
 train <- dta_full[particion,]
+
 test <- dta_full[-particion,]
-#Usando el paquete caret Separamos la base en entrenamiento (60%) y prueba (40%)
+
+#### Usando el paquete caret Separamos la base en entrenamiento (60%) y prueba (40%)
 
 #### Estimación LOGIT:
 model <- as.formula("Pago~DiasMora+SaldoCapital+PagosRealizadoUltMes+PagosRealizadoUlt2Meses+PagosRealizadoUlt3Meses+PagosRealizadoUlt4Meses+PagosRealizadoUlt5Meses+PagosRealizadoUlt6Meses+LocalizacionUlt6Meses+AcuerdosUlt6Meses+AcuerdosUlt3Meses+SaldoxCliente+PagosTotales+factor(TipoProducto)+latitud+longitud")
+
 model <- as.formula("Pago~DiasMora+latitud+longitud+factor(TipoProducto)+LocalizacionUlt6Meses+AcuerdosUlt6Meses+SaldoxCliente+PagosTotales")
+
 logit <- glm(model, family=binomial(link="logit"), data=train)
+
 tidy(logit)
 
 dta_full$Pago_log <- predict(logit, newdata=dta_full, type="response")

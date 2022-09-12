@@ -193,9 +193,12 @@ dta_full$log_07 <- ifelse(dta_full$Pago_log>rule,1,0)
 ##### SaldoxCliente
 
 ##### predecimos en la base de prueba
-pred_m1 <- predict(modelo_1, test)
+pred_m1 <- predict(model, test)
+
 MAE_m1 <- MAE(test$ingtot, pred_m1)
+
 MAPE_m1 <- MAPE(test$ingtot, pred_m1)
+
 RMSE_m1 <- RMSE(test$ingtot, pred_m1)
 
 
